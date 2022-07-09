@@ -1,0 +1,55 @@
+#!/bin/bash
+
+LPIU_CURRENT_OS=""  #CENTOS, UBUNUTU are other valid options
+
+# Afunction that determine the current operating system
+findCurrentOSType()
+{
+    echo "Finding the current OS type"
+    echo
+    osType=$(uname)
+    case "$osType" in
+            "Darwin")
+            {
+                echo "Running on Mac OSX."
+                CURRENT_OS="OSX"
+            } ;;    
+            "Linux")
+            {
+                # If available, use LSB to identify distribution
+                if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+                    DISTRO=$(gawk -F= '/^NAME/{print $2}' /etc/os-release)
+                else
+                    DISTRO=$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1)
+                fi
+                LPIU_CURRENT_OS=""$(echo $DISTRO | tr 'a-z' 'A-Z')
+            } ;;
+            *) 
+            {
+                echo "Unsupported OS, exiting"
+            } ;;
+    esac
+}
+findCurrentOSType
+
+case "$LPIU_CURRENT_OS" in
+            "")
+            {
+                echo "Running on Mac OSX."
+                CURRENT_OS="OSX"
+            } ;;
+            *)
+            {
+                echo "Great! Your current OS type ( $LPIU_CURRENT_OS ) is supported"
+	        echo "Extracting Provided Port..."
+
+        	if [ "$1" != "" ]; then
+	                #The script check if the provided port is in use
+			echo "$(sudo netstat -tulpn | grep --color :$1)"
+	        else
+	                echo -n "No Port received, please enter a port number: "
+                	read portNumber
+			echo "$(sudo netstat -tulpn | grep --color :$portNumber)"
+	        fi
+            } ;;
+esac
